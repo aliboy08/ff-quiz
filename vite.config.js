@@ -7,6 +7,7 @@ export default {
 		v4wp({
 			input: {
 				index: 'src/index.js',
+				admin: 'src/admin/admin.js',
 			},
 			outDir: 'dist',
 		}),

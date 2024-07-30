@@ -89,15 +89,3 @@ function vite_enqueue( $handle, $src, $css_only = false ){
 
     $GLOBALS[__NAMESPACE__.'\vite_scripts'][] = $src;
 }
-
-add_action('wp_footer', function(){
-    pre_debug([
-        'PLUGIN_URL' => PLUGIN_URL,
-        'PLUGIN_PATH' => PLUGIN_PATH,
-        'VITE_PATH' => VITE_PATH,
-        'VITE_URL' => VITE_URL,
-        'VITE_MANIFEST' => VITE_MANIFEST,
-        'VITE_MODE' => VITE_MODE,
-        'VITE_SERVER_ORIGIN' => VITE_SERVER_ORIGIN,
-    ]);
-});

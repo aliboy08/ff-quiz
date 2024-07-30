@@ -1,0 +1,5 @@
+node_modules
+dist
+dist_temp
+**/.DS_Store
+**.log

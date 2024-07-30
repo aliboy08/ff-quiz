@@ -33,7 +33,6 @@ function Add-Zip {
 
     # Exclude directories and files
     foreach ($pattern in $excludePatterns) {
-        Write-Output "Excluding pattern: $pattern"
 
         # Exclude directories
         Get-ChildItem -Path $tempCopyPath -Recurse -Directory | Where-Object { $_.FullName -match [regex]::Escape($pattern) } | Remove-Item -Recurse -Force

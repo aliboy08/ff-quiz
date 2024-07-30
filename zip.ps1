@@ -11,7 +11,6 @@ $destinationPath = Join-Path $sourcePath ($plugin_name + '.zip')
 $excludePatterns = $exclude -split ';' | Where-Object { $_ -ne '' }
 
 # Define the function to create the zip file
-Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
 function Add-Zip {
     param(
         [string]$sourcePath,
@@ -19,7 +18,7 @@ function Add-Zip {
         [string[]]$excludePatterns,
         [string]$containerFolder
     )
-    
+
     # Remove existing zip file if it exists
     if (Test-Path -Path $destinationPath) {
         Remove-Item -Path $destinationPath
@@ -33,26 +32,53 @@ function Add-Zip {
     # Create the container folder
     New-Item -ItemType Directory -Path $containerPath | Out-Null
 
-    # Copy source directory to the container folder
-    Copy-Item -Path (Join-Path $sourcePath '*') -Destination $containerPath -Recurse -Force
+    # Function to check if a path should be excluded
+    function Should-Exclude {
+        param (
+            [string]$path,
+            [string[]]$patterns
+        )
 
-    # Exclude directories and files
-    foreach ($pattern in $excludePatterns) {
-        # Exclude directories
-        Get-ChildItem -Path $containerPath -Recurse -Directory | Where-Object { $_.FullName -like "*$pattern*" } | Remove-Item -Recurse -Force
-
-        # Exclude files
-        Get-ChildItem -Path $containerPath -Recurse -File | Where-Object { $_.Name -like "*$pattern*" } | Remove-Item -Force
+        foreach ($pattern in $patterns) {
+            if ($path -like "*$pattern*") {
+                return $true
+            }
+        }
+        return $false
     }
 
-    # Create the zip file from the temporary directory
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($tempCopyPath, $destinationPath)
+    # Copy source directory to the temporary folder, preserving structure
+    $allItems = Get-ChildItem -Path $sourcePath -Recurse -Force
+    foreach ($item in $allItems) {
+        if (-not (Should-Exclude -path $item.FullName -patterns $excludePatterns)) {
+            $destination = $item.FullName.Replace($sourcePath, $containerPath)
+            if ($item.PSIsContainer) {
+                if (-not (Test-Path -Path $destination)) {
+                    New-Item -ItemType Directory -Path $destination -Force | Out-Null
+                }
+            } else {
+                $parentDir = Split-Path -Parent $destination
+                if (-not (Test-Path -Path $parentDir)) {
+                    New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+                }
+                Copy-Item -Path $item.FullName -Destination $destination -Force
+            }
+        }
+    }
+
+    # Use 7-Zip to compress the container folder
+    $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"  # Adjust path if necessary
+    $arguments = "a", "`"$destinationPath`"", "`"$containerPath`""
+
+    try {
+        & $sevenZipPath @arguments
+        Write-Output "Zip file created successfully at $destinationPath"
+    } catch {
+        Write-Error "Failed to create zip file: $_"
+    }
 
     # Clean up the temporary directory
     Remove-Item -Path $tempCopyPath -Recurse -Force
-
-    # Output success message
-    Write-Output 'Zip file created successfully at ' $destinationPath
 }
 
 # Call the function with defined variables

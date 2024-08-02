@@ -1,5 +1,5 @@
 <?php
-namespace FFPlugin\PluginName;
+namespace FFPlugin\Quiz;
 
 define(__NAMESPACE__.'\VITE_PATH', PLUGIN_PATH);
 define(__NAMESPACE__.'\VITE_URL', PLUGIN_URL);

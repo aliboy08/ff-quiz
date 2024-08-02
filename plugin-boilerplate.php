@@ -1,18 +1,51 @@
 <?php
 /*
  * Plugin name: FF Plugin Boilerplate
- * Plugin URI: https://www.fivebyfive.com.au/
+ * Version: 2.0
  * Description: Enter plugin description here
- * Version: 1.0
+ * Plugin URI: https://www.fivebyfive.com.au/
+ * Author: Five by Five
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
 
 namespace FFPlugin\PluginName;
 
-define(__NAMESPACE__.'\PLUGIN_NAME', 'Plugin Name Here');
-define(__NAMESPACE__.'\PLUGIN_SLUG', 'plugin_slug_here');
+class Plugin {
+    
+    public $plugin_name;
+    public $plugin_slug;
+    public $plugin_url;
+    public $plugin_path;
+    public $vite;
 
-define(__NAMESPACE__.'\PLUGIN_URL', plugins_url('/', __FILE__));
-define(__NAMESPACE__.'\PLUGIN_PATH', plugin_dir_path(__FILE__));
+    public function __construct() {
 
-include 'vite/vite-wp.php';
-include 'admin/admin.php';
+        $this->plugin_name = 'Plugin Name Here';
+        $this->plugin_slug = 'plugin_slug_here';
+        $this->plugin_url = plugins_url('/', __FILE__);
+        $this->plugin_path = plugin_dir_path(__FILE__);
+
+        add_action('init', [ $this, 'init' ]);
+    }
+
+    public function init(){
+
+        $this->vite = new \FF_Vite([
+            'id' => $this->plugin_slug,
+            'url' => $this->plugin_url,
+            'path' => $this->plugin_path,
+        ]);
+
+        // admin settings page
+        // /wp-admin/admin.php?page=plugin_slug
+        add_action('admin_menu', function(){
+            add_submenu_page( 'fivebyfive', $this->plugin_name, $this->plugin_name, 'manage_options', $this->plugin_slug, function(){
+                include 'admin/settings/settings.php';
+            });
+        });
+    }
+    
+}
+
+new Plugin();
